@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rojo-rbx/setup-rojo@v1
+        with:
+          version: 7.7.0
+      - uses: lua-actions/setup-lua@v1
+        with:
+          lua-version: '5.4'
+      - run: python scripts/static_check.py
+      - run: rojo build default.project.json -o RevenueOS.rbxm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RevenueOS-plugin
+          path: RevenueOS.rbxm
