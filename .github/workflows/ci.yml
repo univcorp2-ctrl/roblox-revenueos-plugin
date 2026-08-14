@@ -9,15 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: rojo-rbx/setup-rojo@v1
-        with:
-          version: 7.7.0
-      - uses: lua-actions/setup-lua@v1
-        with:
-          lua-version: '5.4'
-      - run: python scripts/static_check.py
-      - run: rojo build default.project.json -o RevenueOS.rbxm
+      - name: Install pinned Rojo
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/rojo.zip https://github.com/rojo-rbx/rojo/releases/download/v7.6.1/rojo-7.6.1-linux-x86_64.zip
+          mkdir -p "$HOME/.local/bin"
+          unzip -q -o /tmp/rojo.zip -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/rojo"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/rojo" --version
+      - name: Static safety checks
+        run: python scripts/static_check.py
+      - name: Build plugin artifact
+        run: rojo build default.project.json -o RevenueOS.rbxm
       - uses: actions/upload-artifact@v4
         with:
           name: RevenueOS-plugin
           path: RevenueOS.rbxm
+          if-no-files-found: error
